@@ -6,7 +6,8 @@ const canvas = new fabric.Canvas('canvas', {
     height: window.innerHeight,
     backgroundColor: 'red',
 });
-
+fabric.Object.prototype.selectable = false;
+fabric.Object.prototype.evented = false;
 canvas.on('mouse:down', function (o) {
     if (!isDrawing) {
         isDrawing = true;
@@ -19,10 +20,13 @@ canvas.on('mouse:down', function (o) {
             originX: 'center',
             originY: 'center'
         });
-        verticalLineStart = new fabric.Line([pointer.x, pointer.y - 10, pointer.x, pointer.y + 10], {
-            strokeWidth: 2,
+        verticalLineStart = new fabric.Circle({
+            left: pointer.x,
+            top: pointer.y,
+            radius: 5,
             fill: 'blue',
             stroke: 'blue',
+            strokeWidth: 2,
             originX: 'center',
             originY: 'center'
         });
@@ -31,10 +35,13 @@ canvas.on('mouse:down', function (o) {
         isDrawing = false;
         const pointer = canvas.getPointer(o.e);
         line.set({ x2: pointer.x, y2: pointer.y });
-        verticalLineEnd = new fabric.Line([pointer.x, pointer.y - 10, pointer.x, pointer.y + 10], {
-            strokeWidth: 2,
+        verticalLineEnd = new fabric.Circle({
+            left: pointer.x,
+            top: pointer.y,
+            radius: 5,
             fill: 'blue',
             stroke: 'blue',
+            strokeWidth: 2,
             originX: 'center',
             originY: 'center'
         });
@@ -47,13 +54,15 @@ canvas.on('mouse:move', function (o) {
     if (isDrawing) {
         const pointer = canvas.getPointer(o.e);
         const length = Math.sqrt(Math.pow(pointer.x - line.x1, 2) + Math.pow(pointer.y - line.y1, 2));
+
         const text = new fabric.Text(length.toFixed(2) + ' px', {
             left: (line.x1 + pointer.x) / 2,
             top: (line.y1 + pointer.y) / 2 - 20,
             fontSize: 14,
             fill: 'black',
             originX: 'center',
-            originY: 'center'
+            originY: 'center',
+            angle: 0
         });
         canvas.remove(canvas.getObjects('text').pop());
         canvas.add(text);
