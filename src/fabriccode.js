@@ -1,4 +1,3 @@
-// Crear el canvas
 const canvas = new fabric.Canvas('measurement', {
     backgroundColor: '#f0f0f0',
     selection: false,
@@ -6,19 +5,10 @@ const canvas = new fabric.Canvas('measurement', {
     height: 400
 });
 
-// Función para añadir una línea con puntos azules y su tamaño en píxeles
 function addLine(x1, y1, x2, y2) {
+    console.log("Pasa por el addline");
     const line = new fabric.Line([x1, y1, x2, y2], {
         stroke: 'black',
-        selectable: false,
-        evented: false
-    });
-
-    const startPoint = new fabric.Circle({
-        left: x1 - 5,
-        top: y1 - 5,
-        radius: 5,
-        fill: 'blue',
         selectable: false,
         evented: false
     });
@@ -42,7 +32,7 @@ function addLine(x1, y1, x2, y2) {
         evented: false
     });
 
-    canvas.add(line, startPoint, endPoint, text);
+    canvas.add(line, endPoint, text);
 }
 
 let isDrawing = false;
@@ -100,7 +90,6 @@ canvas.on('mouse:move', function (o) {
     canvas.renderAll();
 });
 
-// Renderizar el canvas
 canvas.renderAll();
 
 document.getElementById('clear').addEventListener('click', function () {
@@ -108,19 +97,19 @@ document.getElementById('clear').addEventListener('click', function () {
     canvas.setBackgroundColor('#f0f0f0', canvas.renderAll.bind(canvas));
 });
 
-
 // DESHABILITAR LA EDICION DEL CANVAS
 
 const navbar = document.getElementById('navbar');
 const button = document.createElement('button');
-button.innerText = 'Click Me';
+button.innerText = 'Deshabilitar edición';
 let eventsEnabled = true;
 
 button.addEventListener('click', function () {
     if (eventsEnabled) {
-        alert('Events disabled!');
+        alert('Edition disabled!');
         canvas.off('mouse:down');
         canvas.off('mouse:move');
+        button.innerText = 'Habilitar edición';
     } else {
         alert('Events enabled!');
         canvas.on('mouse:down', function (o) {
