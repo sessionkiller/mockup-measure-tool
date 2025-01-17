@@ -1,10 +1,9 @@
-// Añadir el canvas al DOM
-document.body.innerHTML = '<canvas id="c" width="800" height="600"></canvas>';
-
 // Crear el canvas
-const canvas = new fabric.Canvas('c', {
+const canvas = new fabric.Canvas('measurement', {
     backgroundColor: '#f0f0f0',
-    selection: false
+    selection: false,
+    width: 1000,
+    height: 500
 });
 
 // Función para añadir una línea con puntos azules y su tamaño en píxeles
