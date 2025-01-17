@@ -5,18 +5,24 @@ let tempLine, tempText;
 let eventsEnabled = true;
 
 // ELEMENTOS HTML
-const navbar = document.getElementById("navbar");
-const button = document.createElement("button");
-button.innerText = "Deshabilitar edición";
+const button = document.getElementById("edition");
+const scaleButton = document.getElementById("scale");
+const scaleMenu = document.getElementById("scaleMenu");
+
+scaleButton.addEventListener("click", function () {
+    if (scaleMenu.style.display === "none" || scaleMenu.style.display === "") {
+        scaleMenu.style.display = "block";
+    } else {
+        scaleMenu.style.display = "none";
+    }
+});
 
 // AÑADIR ELEMENTOS AL NAVBAR
-
 button.addEventListener("click", function () {
   if (eventsEnabled) {
     alert("Edition disabled!");
     canvas.off("mouse:down");
     canvas.off("mouse:move");
-    button.innerText = "Habilitar edición";
   } else {
     alert("Events enabled!");
     canvas.on("mouse:down", function (o) {
@@ -25,7 +31,7 @@ button.addEventListener("click", function () {
         isDrawing = true;
         startX = pointer.x;
         startY = pointer.y;
-        const startPoint = createPoint(startX, startY);
+        const startPoint = createPoint(pointer.x, pointer.y);
         canvas.add(startPoint);
       } else {
         isDrawing = false;
@@ -66,7 +72,6 @@ button.addEventListener("click", function () {
   }
   eventsEnabled = !eventsEnabled;
 });
-navbar.appendChild(button);
 
 document.getElementById("clear").addEventListener("click", function () {
   canvas.clear();
@@ -143,11 +148,12 @@ const createPoint = (startX, startY) => {
 };
 
 function addLine(x1, y1, x2, y2) {
-  const line = new fabric.Line([x1, y1, x2, y2], {
+const line = new fabric.Line([x1, y1, x2, y2], {
     stroke: "black",
     selectable: false,
     evented: false,
-  });
+});
+line.sendToBack();
 
   const endPoint = createPoint(x2, y2);
 
