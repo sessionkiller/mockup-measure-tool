@@ -1,82 +1,105 @@
-let isDrawing = false;
-let line, verticalLineStart, verticalLineEnd;
+// Añadir el canvas al DOM
+document.body.innerHTML = '<canvas id="c" width="800" height="600"></canvas>';
 
-const canvas = new fabric.Canvas('canvas', {
-    width: window.innerWidth,
-    height: window.innerHeight,
-    backgroundColor: 'red',
+// Crear el canvas
+const canvas = new fabric.Canvas('c', {
+    backgroundColor: '#f0f0f0',
+    selection: false
 });
-fabric.Object.prototype.selectable = false;
-fabric.Object.prototype.evented = false;
+
+// Función para añadir una línea con puntos azules y su tamaño en píxeles
+function addLine(x1, y1, x2, y2) {
+    const line = new fabric.Line([x1, y1, x2, y2], {
+        stroke: 'black',
+        selectable: false,
+        evented: false
+    });
+
+    const startPoint = new fabric.Circle({
+        left: x1 - 5,
+        top: y1 - 5,
+        radius: 5,
+        fill: 'blue',
+        selectable: false,
+        evented: false
+    });
+
+    const endPoint = new fabric.Circle({
+        left: x2 - 5,
+        top: y2 - 5,
+        radius: 5,
+        fill: 'blue',
+        selectable: false,
+        evented: false
+    });
+
+    const length = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2)).toFixed(2);
+    const text = new fabric.Text(length + ' px', {
+        left: (x1 + x2) / 2,
+        top: (y1 + y2) / 2,
+        fontSize: 14,
+        fill: 'red',
+        selectable: false,
+        evented: false
+    });
+
+    canvas.add(line, startPoint, endPoint, text);
+}
+
+let isDrawing = false;
+let startX, startY;
+
+let tempLine, tempText;
+
 canvas.on('mouse:down', function (o) {
+    const pointer = canvas.getPointer(o.e);
     if (!isDrawing) {
         isDrawing = true;
-        const pointer = canvas.getPointer(o.e);
-        const points = [pointer.x, pointer.y, pointer.x, pointer.y];
-        line = new fabric.Line(points, {
-            strokeWidth: 2,
-            fill: 'black',
-            stroke: 'black',
-            originX: 'center',
-            originY: 'center'
-        });
-        verticalLineStart = new fabric.Circle({
-            left: pointer.x,
-            top: pointer.y,
+        startX = pointer.x;
+        startY = pointer.y;
+        const startPoint = new fabric.Circle({
+            left: startX - 5,
+            top: startY - 5,
             radius: 5,
             fill: 'blue',
-            stroke: 'blue',
-            strokeWidth: 2,
-            originX: 'center',
-            originY: 'center'
+            selectable: false,
+            evented: false
         });
-        canvas.add(line, verticalLineStart);
+        canvas.add(startPoint);
     } else {
         isDrawing = false;
-        const pointer = canvas.getPointer(o.e);
-        line.set({ x2: pointer.x, y2: pointer.y });
-        verticalLineEnd = new fabric.Circle({
-            left: pointer.x,
-            top: pointer.y,
-            radius: 5,
-            fill: 'blue',
-            stroke: 'blue',
-            strokeWidth: 2,
-            originX: 'center',
-            originY: 'center'
-        });
-        canvas.add(verticalLineEnd);
-        canvas.renderAll();
+        canvas.remove(tempLine, tempText);
+        addLine(startX, startY, pointer.x, pointer.y);
     }
 });
 
 canvas.on('mouse:move', function (o) {
-    if (isDrawing) {
-        const pointer = canvas.getPointer(o.e);
-        const length = Math.sqrt(Math.pow(pointer.x - line.x1, 2) + Math.pow(pointer.y - line.y1, 2));
-
-        const text = new fabric.Text(length.toFixed(2) + ' px', {
-            left: (line.x1 + pointer.x) / 2,
-            top: (line.y1 + pointer.y) / 2 - 20,
-            fontSize: 14,
-            fill: 'black',
-            originX: 'center',
-            originY: 'center',
-            angle: 0
-        });
-        canvas.remove(canvas.getObjects('text').pop());
-        canvas.add(text);
-    }
     if (!isDrawing) return;
+
     const pointer = canvas.getPointer(o.e);
-    line.set({ x2: pointer.x, y2: pointer.y });
+    if (tempLine) {
+        canvas.remove(tempLine, tempText);
+    }
+
+    tempLine = new fabric.Line([startX, startY, pointer.x, pointer.y], {
+        stroke: 'black',
+        selectable: false,
+        evented: false
+    });
+
+    const length = Math.sqrt(Math.pow(pointer.x - startX, 2) + Math.pow(pointer.y - startY, 2)).toFixed(2);
+    tempText = new fabric.Text(length + ' px', {
+        left: (startX + pointer.x) / 2,
+        top: (startY + pointer.y) / 2,
+        fontSize: 14,
+        fill: 'red',
+        selectable: false,
+        evented: false
+    });
+
+    canvas.add(tempLine, tempText);
     canvas.renderAll();
 });
 
-window.addEventListener('resize', () => {
-    canvas.setWidth(window.innerWidth);
-    canvas.setHeight(window.innerHeight);
-    canvas.renderAll();
-});
-
+// Renderizar el canvas
 canvas.renderAll();
