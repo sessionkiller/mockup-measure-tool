@@ -4,9 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Fabric.js</title>
+    <link rel="stylesheet" href="./src/style.css">
 </head>
 <body>
-    <h1>Holitas de pollo</h1>
+    <div id="navbar">
+        <button id="clear">Clear</button>
+        <button id="scale">Measure Scale</button>
+        <input type="number" id="scaleInput" placeholder="Enter Scale">
+    </div>
     <canvas id="measurement"></canvas>
     <script src="./public/fabric.min.js"></script>
     <script src="src/fabriccode.js"></script>

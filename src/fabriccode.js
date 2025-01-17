@@ -2,8 +2,8 @@
 const canvas = new fabric.Canvas('measurement', {
     backgroundColor: '#f0f0f0',
     selection: false,
-    width: 1000,
-    height: 500
+    width: 1200,
+    height: 400
 });
 
 // Función para añadir una línea con puntos azules y su tamaño en píxeles
