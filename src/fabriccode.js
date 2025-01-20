@@ -2,7 +2,13 @@
 let isDrawing = false;
 let isEventsEnabled = true;
 let isScaleMeasureEnabled = false;
-let startX, startY, tempLine, tempText, linePxSize, scaleInMeters;
+let startX,
+  startY,
+  tempLine,
+  tempText,
+  linePxSize,
+  scaleInMeters,
+  scaleInPixels;
 
 // ELEMENTOS HTML
 const editionButton = document.getElementById("edition");
@@ -68,6 +74,8 @@ const enableMouseDownEvent = () => {
       isDrawing = false;
       canvas.remove(tempLine, tempText);
       addLine(startX, startY, pointer.x, pointer.y);
+      const endPoint = createPoint(pointer.x, pointer.y);
+      canvas.add(endPoint);
     }
   });
 };
@@ -80,27 +88,9 @@ const enableMouseMoveEvent = () => {
     if (tempLine) {
       canvas.remove(tempLine, tempText);
     }
-
-    tempLine = new fabric.Line([startX, startY, pointer.x, pointer.y], {
-      stroke: "black",
-      selectable: false,
-      evented: false,
-    });
-
-    const length = Math.sqrt(
-      Math.pow(pointer.x - startX, 2) + Math.pow(pointer.y - startY, 2)
-    ).toFixed(2);
-    tempText = new fabric.Text(length + " px", {
-      left: (startX + pointer.x) / 2,
-      top: (startY + pointer.y) / 2,
-      fontSize: 14,
-      fill: "red",
-      selectable: false,
-      evented: false,
-    });
-
-    canvas.add(tempLine, tempText);
-    canvas.renderAll();
+    const line = addLine(startX, startY, pointer.x, pointer.y);
+    tempLine = line.line;
+    tempText = line.text;
   });
 };
 
@@ -124,12 +114,20 @@ function addLine(x1, y1, x2, y2) {
   });
   line.sendToBack();
 
-  const endPoint = createPoint(x2, y2);
-
-  linePxSize = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2)).toFixed(
+  let textToPrint = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2)).toFixed(
     2
-  );
-  const text = new fabric.Text(linePxSize + " px", {
+  ) + " px";
+  if (isScaleMeasureEnabled) {
+    console.log("LA ESCALA MEASURE ESTA HABILITADA");
+    scaleInPixels = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2)).toFixed(
+      2
+    );
+  }
+  if(scaleInMeters){
+    // console.log("Scale in meters: ", line);
+    textToPrint = pixelsToMeters(parseFloat(Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2)))) + " m";
+  }
+  const text = new fabric.Text(textToPrint, {
     left: (x1 + x2) / 2,
     top: (y1 + y2) / 2,
     fontSize: 14,
@@ -138,7 +136,8 @@ function addLine(x1, y1, x2, y2) {
     evented: false,
   });
 
-  canvas.add(line, endPoint, text);
+  canvas.add(line, text);
+  return { line: line, text: text };
 }
 
 const clearCanvas = () => {
@@ -157,3 +156,14 @@ function handleFormSubmit(e) {
   scaleInMeters = document.getElementById("scaleInput").valueAsNumber;
   console.log("Scale in meters: ", scaleInMeters);
 }
+
+// UTILIDADES
+const pixelsToMeters = (pixels) => {
+  if (scaleInPixels && scaleInMeters) {
+    console.log("PASA POR PIXELSTOMETERS: ", pixels, scaleInPixels, scaleInMeters);
+    return ((pixels / scaleInPixels) * scaleInMeters).toFixed(3);
+  } else {
+    console.error("La escala no está definida.");
+    return null;
+  }
+};
