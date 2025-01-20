@@ -1,74 +1,33 @@
 // VARIABLES GLOBALES
 let isDrawing = false;
-let startX, startY;
-let tempLine, tempText;
 let eventsEnabled = true;
+let startX, startY, tempLine, tempText;
 
 // ELEMENTOS HTML
-const button = document.getElementById("edition");
+const editionButton = document.getElementById("edition");
 const scaleButton = document.getElementById("scale");
 const scaleMenu = document.getElementById("scaleMenu");
 
 scaleButton.addEventListener("click", function () {
-    if (scaleMenu.style.display === "none" || scaleMenu.style.display === "") {
-        scaleMenu.style.display = "block";
-    } else {
-        scaleMenu.style.display = "none";
-    }
+  if (scaleMenu.style.display === "none" || scaleMenu.style.display === "") {
+    scaleMenu.style.display = "block";
+  } else {
+    scaleMenu.style.display = "none";
+  }
 });
 
 // AÑADIR ELEMENTOS AL NAVBAR
-button.addEventListener("click", function () {
+editionButton.addEventListener("click", function () {
   if (eventsEnabled) {
     alert("Edition disabled!");
     canvas.off("mouse:down");
     canvas.off("mouse:move");
+    editionButton.textContent = "Enable Edition";
   } else {
     alert("Events enabled!");
-    canvas.on("mouse:down", function (o) {
-      const pointer = canvas.getPointer(o.e);
-      if (!isDrawing) {
-        isDrawing = true;
-        startX = pointer.x;
-        startY = pointer.y;
-        const startPoint = createPoint(pointer.x, pointer.y);
-        canvas.add(startPoint);
-      } else {
-        isDrawing = false;
-        canvas.remove(tempLine, tempText);
-        addLine(startX, startY, pointer.x, pointer.y);
-      }
-    });
-
-    canvas.on("mouse:move", function (o) {
-      if (!isDrawing) return;
-
-      const pointer = canvas.getPointer(o.e);
-      if (tempLine) {
-        canvas.remove(tempLine, tempText);
-      }
-
-      tempLine = new fabric.Line([startX, startY, pointer.x, pointer.y], {
-        stroke: "black",
-        selectable: false,
-        evented: false,
-      });
-
-      const length = Math.sqrt(
-        Math.pow(pointer.x - startX, 2) + Math.pow(pointer.y - startY, 2)
-      ).toFixed(2);
-      tempText = new fabric.Text(length + " px", {
-        left: (startX + pointer.x) / 2,
-        top: (startY + pointer.y) / 2,
-        fontSize: 14,
-        fill: "red",
-        selectable: false,
-        evented: false,
-      });
-
-      canvas.add(tempLine, tempText);
-      canvas.renderAll();
-    });
+    editionButton.textContent = "Disable Edition";
+    enableMouseDownEvent();
+    enableMouseMoveEvent();
   }
   eventsEnabled = !eventsEnabled;
 });
@@ -89,50 +48,54 @@ const canvas = new fabric.Canvas("measurement", {
 
 // EVENTOS DE MOUSE
 
-canvas.on("mouse:down", function (o) {
-  const pointer = canvas.getPointer(o.e);
-  if (!isDrawing) {
-    isDrawing = true;
-    startX = pointer.x;
-    startY = pointer.y;
-    const startPoint = createPoint(startX, startY);
-    canvas.add(startPoint);
-  } else {
-    isDrawing = false;
-    canvas.remove(tempLine, tempText);
-    addLine(startX, startY, pointer.x, pointer.y);
-  }
-});
-
-canvas.on("mouse:move", function (o) {
-  if (!isDrawing) return;
-
-  const pointer = canvas.getPointer(o.e);
-  if (tempLine) {
-    canvas.remove(tempLine, tempText);
-  }
-
-  tempLine = new fabric.Line([startX, startY, pointer.x, pointer.y], {
-    stroke: "black",
-    selectable: false,
-    evented: false,
+const enableMouseDownEvent = () => {
+  canvas.on("mouse:down", function (o) {
+    const pointer = canvas.getPointer(o.e);
+    if (!isDrawing) {
+      isDrawing = true;
+      startX = pointer.x;
+      startY = pointer.y;
+      const startPoint = createPoint(startX, startY);
+      canvas.add(startPoint);
+    } else {
+      isDrawing = false;
+      canvas.remove(tempLine, tempText);
+      addLine(startX, startY, pointer.x, pointer.y);
+    }
   });
+};
 
-  const length = Math.sqrt(
-    Math.pow(pointer.x - startX, 2) + Math.pow(pointer.y - startY, 2)
-  ).toFixed(2);
-  tempText = new fabric.Text(length + " px", {
-    left: (startX + pointer.x) / 2,
-    top: (startY + pointer.y) / 2,
-    fontSize: 14,
-    fill: "red",
-    selectable: false,
-    evented: false,
+const enableMouseMoveEvent = () => {
+  canvas.on("mouse:move", function (o) {
+    if (!isDrawing) return;
+
+    const pointer = canvas.getPointer(o.e);
+    if (tempLine) {
+      canvas.remove(tempLine, tempText);
+    }
+
+    tempLine = new fabric.Line([startX, startY, pointer.x, pointer.y], {
+      stroke: "black",
+      selectable: false,
+      evented: false,
+    });
+
+    const length = Math.sqrt(
+      Math.pow(pointer.x - startX, 2) + Math.pow(pointer.y - startY, 2)
+    ).toFixed(2);
+    tempText = new fabric.Text(length + " px", {
+      left: (startX + pointer.x) / 2,
+      top: (startY + pointer.y) / 2,
+      fontSize: 14,
+      fill: "red",
+      selectable: false,
+      evented: false,
+    });
+
+    canvas.add(tempLine, tempText);
+    canvas.renderAll();
   });
-
-  canvas.add(tempLine, tempText);
-  canvas.renderAll();
-});
+};
 
 // MÉTODOS DE CREACIÓN DE FIGURAS
 const createPoint = (startX, startY) => {
@@ -148,12 +111,12 @@ const createPoint = (startX, startY) => {
 };
 
 function addLine(x1, y1, x2, y2) {
-const line = new fabric.Line([x1, y1, x2, y2], {
+  const line = new fabric.Line([x1, y1, x2, y2], {
     stroke: "black",
     selectable: false,
     evented: false,
-});
-line.sendToBack();
+  });
+  line.sendToBack();
 
   const endPoint = createPoint(x2, y2);
 
@@ -171,3 +134,9 @@ line.sendToBack();
 
   canvas.add(line, endPoint, text);
 }
+
+// CUANDO SE CARGA LA PÁGINA
+window.onload = function () {
+  enableMouseDownEvent();
+  enableMouseMoveEvent();
+};
