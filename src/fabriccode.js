@@ -1,24 +1,54 @@
 // VARIABLES GLOBALES
 let isDrawing = false;
-let eventsEnabled = true;
-let startX, startY, tempLine, tempText;
+let isEventsEnabled = true;
+let isScaleMeasureEnabled = false;
+let startX, startY, tempLine, tempText, linePxSize, scaleInMeters;
 
 // ELEMENTOS HTML
 const editionButton = document.getElementById("edition");
-const scaleButton = document.getElementById("scale");
+const enterScaleButton = document.getElementById("scale");
 const scaleMenu = document.getElementById("scaleMenu");
+const scaleInput = document.getElementById("scaleInput");
+const scaleSubmitButton = document.getElementById("scaleButton");
 
-scaleButton.addEventListener("click", function () {
+enterScaleButton.addEventListener("click", function () {
   if (scaleMenu.style.display === "none" || scaleMenu.style.display === "") {
     scaleMenu.style.display = "block";
+    isScaleMeasureEnabled = true;
   } else {
     scaleMenu.style.display = "none";
+    isScaleMeasureEnabled = false;
+  }
+  clearCanvas();
+});
+
+scaleInput.addEventListener("input", function () {
+  scaleSubmitButton.disabled = !scaleInput.value || isNaN(scaleInput.value);
+});
+
+scaleSubmitButton.addEventListener("click", function () {
+  if (scaleInput.value && !isNaN(scaleInput.value)) {
+    console.log("Scale value: " + scaleInput);
+    scaleInput.value = "";
+    scaleSubmitButton.disabled = true;
+    scaleInMeters = parseInt(scaleInput.value);
+    console.log("Estos son los metros: ", scaleInMeters);
+    clearCanvas();
   }
 });
 
+// CANVAS
+const canvas = new fabric.Canvas("measurement", {
+  backgroundColor: "#f0f0f0",
+  selection: false,
+  width: 1200,
+  height: 400,
+});
+
 // AÑADIR ELEMENTOS AL NAVBAR
+
 editionButton.addEventListener("click", function () {
-  if (eventsEnabled) {
+  if (isEventsEnabled) {
     alert("Edition disabled!");
     canvas.off("mouse:down");
     canvas.off("mouse:move");
@@ -29,29 +59,22 @@ editionButton.addEventListener("click", function () {
     enableMouseDownEvent();
     enableMouseMoveEvent();
   }
-  eventsEnabled = !eventsEnabled;
+  isEventsEnabled = !isEventsEnabled;
 });
 
 document.getElementById("clear").addEventListener("click", function () {
-  canvas.clear();
-  canvas.setBackgroundColor("#f0f0f0", canvas.renderAll.bind(canvas));
+  clearCanvas();
 });
-
-// CANVAS
-
-const canvas = new fabric.Canvas("measurement", {
-  backgroundColor: "#f0f0f0",
-  selection: false,
-  width: 1200,
-  height: 400,
-});
-
 // EVENTOS DE MOUSE
 
 const enableMouseDownEvent = () => {
   canvas.on("mouse:down", function (o) {
     const pointer = canvas.getPointer(o.e);
     if (!isDrawing) {
+      const hasObjects = canvas.getObjects().length > 0;
+      if (isScaleMeasureEnabled && hasObjects) {
+        clearCanvas();
+      }
       isDrawing = true;
       startX = pointer.x;
       startY = pointer.y;
@@ -99,7 +122,6 @@ const enableMouseMoveEvent = () => {
 
 // MÉTODOS DE CREACIÓN DE FIGURAS
 const createPoint = (startX, startY) => {
-  console.log("createPoint");
   return new fabric.Circle({
     left: startX - 5,
     top: startY - 5,
@@ -111,6 +133,7 @@ const createPoint = (startX, startY) => {
 };
 
 function addLine(x1, y1, x2, y2) {
+  console.log("Estos son los metros: ", scaleInMeters);
   const line = new fabric.Line([x1, y1, x2, y2], {
     stroke: "black",
     selectable: false,
@@ -120,10 +143,10 @@ function addLine(x1, y1, x2, y2) {
 
   const endPoint = createPoint(x2, y2);
 
-  const length = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2)).toFixed(
+  linePxSize = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2)).toFixed(
     2
   );
-  const text = new fabric.Text(length + " px", {
+  const text = new fabric.Text(linePxSize + " px", {
     left: (x1 + x2) / 2,
     top: (y1 + y2) / 2,
     fontSize: 14,
@@ -134,6 +157,11 @@ function addLine(x1, y1, x2, y2) {
 
   canvas.add(line, endPoint, text);
 }
+
+const clearCanvas = () => {
+  canvas.clear();
+  canvas.setBackgroundColor("#f0f0f0", canvas.renderAll.bind(canvas));
+};
 
 // CUANDO SE CARGA LA PÁGINA
 window.onload = function () {
