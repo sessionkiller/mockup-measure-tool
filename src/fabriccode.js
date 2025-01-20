@@ -22,21 +22,6 @@ enterScaleButton.addEventListener("click", function () {
   clearCanvas();
 });
 
-scaleInput.addEventListener("input", function () {
-  scaleSubmitButton.disabled = !scaleInput.value || isNaN(scaleInput.value);
-});
-
-scaleSubmitButton.addEventListener("click", function () {
-  if (scaleInput.value && !isNaN(scaleInput.value)) {
-    console.log("Scale value: " + scaleInput);
-    scaleInput.value = "";
-    scaleSubmitButton.disabled = true;
-    scaleInMeters = parseInt(scaleInput.value);
-    console.log("Estos son los metros: ", scaleInMeters);
-    clearCanvas();
-  }
-});
-
 // CANVAS
 const canvas = new fabric.Canvas("measurement", {
   backgroundColor: "#f0f0f0",
@@ -46,7 +31,6 @@ const canvas = new fabric.Canvas("measurement", {
 });
 
 // AÑADIR ELEMENTOS AL NAVBAR
-
 editionButton.addEventListener("click", function () {
   if (isEventsEnabled) {
     alert("Edition disabled!");
@@ -65,8 +49,8 @@ editionButton.addEventListener("click", function () {
 document.getElementById("clear").addEventListener("click", function () {
   clearCanvas();
 });
-// EVENTOS DE MOUSE
 
+// EVENTOS DE MOUSE
 const enableMouseDownEvent = () => {
   canvas.on("mouse:down", function (o) {
     const pointer = canvas.getPointer(o.e);
@@ -133,7 +117,6 @@ const createPoint = (startX, startY) => {
 };
 
 function addLine(x1, y1, x2, y2) {
-  console.log("Estos son los metros: ", scaleInMeters);
   const line = new fabric.Line([x1, y1, x2, y2], {
     stroke: "black",
     selectable: false,
@@ -168,3 +151,9 @@ window.onload = function () {
   enableMouseDownEvent();
   enableMouseMoveEvent();
 };
+
+function handleFormSubmit(e) {
+  e.preventDefault();
+  scaleInMeters = document.getElementById("scaleInput").valueAsNumber;
+  console.log("Scale in meters: ", scaleInMeters);
+}
