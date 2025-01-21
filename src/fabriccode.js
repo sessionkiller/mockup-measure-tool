@@ -15,6 +15,7 @@ const editionButton = document.getElementById("edition");
 const enterScaleButton = document.getElementById("scale");
 const scaleMenu = document.getElementById("scaleMenu");
 const scaleInput = document.getElementById("scaleInput");
+const scaleButton = document.getElementById("scaleButton");
 
 enterScaleButton.addEventListener("click", function () {
   if (scaleMenu.style.display === "none" || scaleMenu.style.display === "") {
@@ -127,13 +128,11 @@ function addLine(x1, y1, x2, y2) {
     2
   ) + " px";
   if (isScaleMeasureEnabled) {
-    console.log("LA ESCALA MEASURE ESTA HABILITADA");
     scaleInPixels = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2)).toFixed(
       2
     );
   }
   if(scaleInMeters){
-    // console.log("Scale in meters: ", line);
     textToPrint = pixelsToMeters(parseFloat(Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2)))) + " m";
   }
   const text = new fabric.Text(textToPrint, {
@@ -170,10 +169,19 @@ function handleFormSubmit(e) {
 // UTILIDADES
 const pixelsToMeters = (pixels) => {
   if (scaleInPixels && scaleInMeters) {
-    console.log("PASA POR PIXELSTOMETERS: ", pixels, scaleInPixels, scaleInMeters);
     return ((pixels / scaleInPixels) * scaleInMeters).toFixed(3);
   } else {
-    console.error("La escala no está definida.");
     return null;
   }
 };
+
+// VALIDACIONES DEL FORMULARIO
+const validateForm = () => {
+  const scaleValue = scaleInput.value.trim();
+  const hasObjects = canvas.getObjects().length > 0;
+  scaleButton.disabled = !(scaleValue && hasObjects);
+};
+
+scaleInput.addEventListener("input", validateForm);
+canvas.on("object:added", validateForm);
+canvas.on("object:removed", validateForm);
