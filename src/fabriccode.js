@@ -114,7 +114,7 @@ const createPoint = (startX, startY) => {
     left: startX - 5,
     top: startY - 5,
     radius: 5,
-    fill: "blue",
+    fill: isScaleMeasureEnabled ? "red" : "blue",
     selectable: false,
     evented: false,
   });
@@ -122,7 +122,7 @@ const createPoint = (startX, startY) => {
 
 function addLine(x1, y1, x2, y2) {
   const line = new fabric.Line([x1, y1, x2, y2], {
-    stroke: "black",
+    stroke: isScaleMeasureEnabled ? "red" : "blue",
     selectable: false,
     evented: false,
   });
