@@ -1,6 +1,6 @@
 // VARIABLES GLOBALES
 let isDrawing = false;
-let isEventsEnabled = true;
+let isEditionModeEnabled = true;
 let isScaleMeasureEnabled = false;
 let startX,
   startY,
@@ -51,7 +51,7 @@ const canvas = new fabric.Canvas("measurement", {
 
 // AÑADIR ELEMENTOS AL NAVBAR
 editionButton.addEventListener("click", function () {
-  if (isEventsEnabled) {
+  if (isEditionModeEnabled) {
     alert("Edition disabled!");
     canvas.off("mouse:down");
     canvas.off("mouse:move");
@@ -62,7 +62,7 @@ editionButton.addEventListener("click", function () {
     enableMouseDownEvent();
     enableMouseMoveEvent();
   }
-  isEventsEnabled = !isEventsEnabled;
+  isEditionModeEnabled = !isEditionModeEnabled;
 });
 
 document.getElementById("clear").addEventListener("click", function () {
