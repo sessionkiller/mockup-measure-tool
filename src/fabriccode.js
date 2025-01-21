@@ -31,12 +31,12 @@ enterScaleButton.addEventListener("click", function () {
 const showScaleMeasurementMenu = () => {
   scaleMenu.style.display = "block";
   isScaleMeasureEnabled = true;
-}
+};
 
 const hideScaleMeasurementMenu = () => {
   scaleMenu.style.display = "none";
   isScaleMeasureEnabled = false;
-}
+};
 
 // CANVAS
 const canvas = new fabric.Canvas("measurement", {
@@ -124,16 +124,18 @@ function addLine(x1, y1, x2, y2) {
   });
   line.sendToBack();
 
-  let textToPrint = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2)).toFixed(
-    2
-  ) + " px";
+  let textToPrint =
+    Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2)).toFixed(2) + " px";
   if (isScaleMeasureEnabled) {
-    scaleInPixels = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2)).toFixed(
-      2
-    );
+    scaleInPixels = Math.sqrt(
+      Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2)
+    ).toFixed(2);
   }
-  if(scaleInMeters){
-    textToPrint = pixelsToMeters(parseFloat(Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2)))) + " m";
+  if (scaleInMeters) {
+    textToPrint =
+      pixelsToMeters(
+        parseFloat(Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2)))
+      ) + " m";
   }
   const text = new fabric.Text(textToPrint, {
     left: (x1 + x2) / 2,
@@ -151,12 +153,14 @@ function addLine(x1, y1, x2, y2) {
 const clearCanvas = () => {
   canvas.clear();
   canvas.setBackgroundColor("#f0f0f0", canvas.renderAll.bind(canvas));
+  setBackgroundImage();
 };
 
 // CUANDO SE CARGA LA PÁGINA
 window.onload = function () {
   enableMouseDownEvent();
   enableMouseMoveEvent();
+  setBackgroundImage();
 };
 
 function handleFormSubmit(e) {
@@ -185,3 +189,14 @@ const validateForm = () => {
 scaleInput.addEventListener("input", validateForm);
 canvas.on("object:added", validateForm);
 canvas.on("object:removed", validateForm);
+
+const setBackgroundImage = () => {
+  fabric.Image.fromURL("/casa-para-pintar.jpg", function (img) {
+    canvas.setWidth(img.width);
+    canvas.setHeight(img.height);
+    canvas.setBackgroundImage(img, canvas.renderAll.bind(canvas), {
+      scaleX: canvas.width / img.width,
+      scaleY: canvas.height / img.height,
+    });
+  });
+};
