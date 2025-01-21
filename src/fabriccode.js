@@ -1,6 +1,6 @@
 // VARIABLES GLOBALES
 let isDrawing = false;
-let isEditionModeEnabled = true;
+let isEditionModeEnabled = false;
 let isScaleMeasureEnabled = false;
 let startX,
   startY,
@@ -55,6 +55,7 @@ editionButton.addEventListener("click", function () {
     alert("Edition disabled!");
     canvas.off("mouse:down");
     canvas.off("mouse:move");
+    clearCanvas();
     editionButton.textContent = "Enable Edition";
   } else {
     alert("Events enabled!");
@@ -161,8 +162,6 @@ const clearCanvas = () => {
 
 // CUANDO SE CARGA LA PÁGINA
 window.onload = function () {
-  enableMouseDownEvent();
-  enableMouseMoveEvent();
   setBackgroundImage();
 };
 
