@@ -15,18 +15,27 @@ const editionButton = document.getElementById("edition");
 const enterScaleButton = document.getElementById("scale");
 const scaleMenu = document.getElementById("scaleMenu");
 const scaleInput = document.getElementById("scaleInput");
-const scaleSubmitButton = document.getElementById("scaleButton");
 
 enterScaleButton.addEventListener("click", function () {
   if (scaleMenu.style.display === "none" || scaleMenu.style.display === "") {
-    scaleMenu.style.display = "block";
-    isScaleMeasureEnabled = true;
+    showScaleMeasurementMenu();
   } else {
-    scaleMenu.style.display = "none";
-    isScaleMeasureEnabled = false;
+    hideScaleMeasurementMenu();
   }
   clearCanvas();
 });
+
+// TODO - Mover estas funciones a la parte de abajo
+
+const showScaleMeasurementMenu = () => {
+  scaleMenu.style.display = "block";
+  isScaleMeasureEnabled = true;
+}
+
+const hideScaleMeasurementMenu = () => {
+  scaleMenu.style.display = "none";
+  isScaleMeasureEnabled = false;
+}
 
 // CANVAS
 const canvas = new fabric.Canvas("measurement", {
@@ -154,7 +163,8 @@ window.onload = function () {
 function handleFormSubmit(e) {
   e.preventDefault();
   scaleInMeters = document.getElementById("scaleInput").valueAsNumber;
-  console.log("Scale in meters: ", scaleInMeters);
+  hideScaleMeasurementMenu();
+  clearCanvas();
 }
 
 // UTILIDADES
