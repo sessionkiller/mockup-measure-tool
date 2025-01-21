@@ -19,6 +19,9 @@ const scaleButton = document.getElementById("scaleButton");
 
 enterScaleButton.addEventListener("click", function () {
   if (scaleMenu.style.display === "none" || scaleMenu.style.display === "") {
+    scaleInMeters = null;
+    scaleInPixels = null;
+    scaleInput.value = "";
     showScaleMeasurementMenu();
   } else {
     hideScaleMeasurementMenu();
