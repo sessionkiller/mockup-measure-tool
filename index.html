@@ -8,26 +8,66 @@
     <title>Vite App</title>
   </head>
   <body>
-    <div id="toolbarMenu">
+    <!-- <div id="toolbarMenu">
       <button id="pdfInteractionsButton" onclick="togglePDFInteractions()">Activar Medición</button>
-    </div>
+    </div> -->
+    <canvas
+      id="fabricCanvas"
+      style="position: absolute; top: 0; left: 0"
+    ></canvas>
     <iframe
       id="inlineFrameExample"
       title="Inline Frame Example"
       width="100%"
-      style="height: 90vh;"
+      height="100%"
+      style="position: absolute; top: 0; left: 0; bottom: 0; right: 0"
       src="/pdfjs-4.10.38-dist/web/viewer.html?file=/public/SheetTemplate.pdf"
-      style="
-        border: none;
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-      "
     >
     </iframe>
     <script src="/src/viewercode.js"></script>
+    <script src="./public/fabric.min.js"></script>
+
+    <script>
+      const iframe = document.getElementById("inlineFrameExample");
+
+      // Espera a que el iframe cargue completamente
+      iframe.onload = () => {
+        const iframeDoc =
+          iframe.contentDocument || iframe.contentWindow.document;
+
+        // Encuentra el canvas dentro del iframe
+        const pdfCanvas = document.querySelector("canvas");
+        if (!pdfCanvas) {
+          console.error("No se encontró el canvas del PDF en el iframe.");
+          return;
+        } else {
+          console.log("Canvas del PDF encontrado.");
+        }
+
+        // Configura Fabric.js sobre el canvas del PDF
+        configureFabric(pdfCanvas);
+      };
+
+      function configureFabric(pdfCanvas) {
+        // Crea un canvas HTML en la página principal
+        const fabricCanvas = document.createElement("canvas", {
+          width: window.innerWidth,
+          height: window.innerHeight,
+        });
+        document.body.appendChild(fabricCanvas);
+
+        // Ajusta el tamaño del canvas Fabric.js para coincidir con el PDF
+        const fabricInstance = new fabric.Canvas(fabricCanvas, {
+          isDrawingMode: true,
+          width: window.innerWidth,
+          height: window.innerHeight,
+        });
+
+        // Configura las herramientas de dibujo si lo deseas
+        fabricInstance.freeDrawingBrush.width = 2;
+        fabricInstance.freeDrawingBrush.color = "blue";
+      }
+    </script>
 
     <!-- <div id="app"></div> -->
     <!-- <script type="module" src="/src/main.js"></script> -->
