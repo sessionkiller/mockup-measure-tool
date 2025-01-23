@@ -30,40 +30,48 @@
     <script>
       const iframe = document.getElementById("inlineFrameExample");
 
-      // Espera a que el iframe cargue completamente
       iframe.onload = () => {
         const iframeDoc =
           iframe.contentDocument || iframe.contentWindow.document;
 
-        // Encuentra el canvas dentro del iframe
-        const pdfCanvas = document.querySelector("canvas");
-        if (!pdfCanvas) {
-          console.error("No se encontró el canvas del PDF en el iframe.");
-          return;
-        } else {
-          console.log("Canvas del PDF encontrado.");
-        }
+          let canvasSizeValue = null;
 
-        // Configura Fabric.js sobre el canvas del PDF
-        configureFabric(pdfCanvas);
+        if (iframeDoc) {
+          const observer = new MutationObserver(() => {
+            const viewerElement = iframeDoc.getElementsByTagName("canvas");
+            if (viewerElement.length > 0) {
+              observer.disconnect();
+
+              const copy = Array.from(viewerElement);
+
+              copy.forEach((element) => {
+                canvasSizeValue = element.getBoundingClientRect();
+                configureFabric(element, canvasSizeValue);
+              });
+            }
+          });
+          observer.observe(iframeDoc.body, { childList: true, subtree: true });
+        }
       };
 
-      function configureFabric(pdfCanvas) {
-        // Crea un canvas HTML en la página principal
+      function configureFabric(pdfCanvas, canvasSize) {
+        console.log("ESTE ES EL CANVAS SIZE: ", canvasSize);
         const fabricCanvas = document.createElement("canvas", {
-          width: window.innerWidth,
-          height: window.innerHeight,
+          width: canvasSize.width,
+          height: canvasSize.height,
+          top: 70,
+          left: 70,
         });
         document.body.appendChild(fabricCanvas);
 
-        // Ajusta el tamaño del canvas Fabric.js para coincidir con el PDF
         const fabricInstance = new fabric.Canvas(fabricCanvas, {
           isDrawingMode: true,
-          width: window.innerWidth,
-          height: window.innerHeight,
+          width: canvasSize.width,
+          height: canvasSize.height,
+          top: 70,
+          left: 70,
         });
 
-        // Configura las herramientas de dibujo si lo deseas
         fabricInstance.freeDrawingBrush.width = 2;
         fabricInstance.freeDrawingBrush.color = "blue";
       }
