@@ -56,24 +56,20 @@
 
       function configureFabric(pdfCanvas, canvasSize) {
         console.log("ESTE ES EL CANVAS SIZE: ", canvasSize);
-        const fabricCanvas = document.createElement("canvas", {
-          width: canvasSize.width,
-          height: canvasSize.height,
-          top: 70,
-          left: 70,
-        });
+        const fabricCanvas = document.createElement("canvas");
         document.body.appendChild(fabricCanvas);
 
         const fabricInstance = new fabric.Canvas(fabricCanvas, {
           isDrawingMode: true,
           width: canvasSize.width,
-          height: canvasSize.height,
-          top: 70,
-          left: 70,
+          height: canvasSize.height
         });
 
         fabricInstance.freeDrawingBrush.width = 2;
         fabricInstance.freeDrawingBrush.color = "blue";
+
+        fabricInstance.wrapperEl.style.top = `${canvasSize.top}px`
+        fabricInstance.wrapperEl.style.left = `${canvasSize.left}px`
       }
     </script>
 
