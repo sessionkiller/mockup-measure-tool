@@ -11,10 +11,7 @@
     <!-- <div id="toolbarMenu">
       <button id="pdfInteractionsButton" onclick="togglePDFInteractions()">Activar Medición</button>
     </div> -->
-    <canvas
-      id="fabricCanvas"
-      style="position: absolute; top: 0; left: 0"
-    ></canvas>
+
     <iframe
       id="inlineFrameExample"
       title="Inline Frame Example"
@@ -29,30 +26,80 @@
 
     <script>
       const iframe = document.getElementById("inlineFrameExample");
+      let iframeDoc = null;
+
+      // Array to store Fabric.js instances
+      const fabricInstances = [];
 
       iframe.onload = () => {
-        const iframeDoc =
-          iframe.contentDocument || iframe.contentWindow.document;
-
-          let canvasSizeValue = null;
+        iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
 
         if (iframeDoc) {
           const observer = new MutationObserver(() => {
-            const viewerElement = iframeDoc.getElementsByTagName("canvas");
-            if (viewerElement.length > 0) {
+            const pdfPages = iframeDoc.getElementsByTagName("canvas");
+            if (pdfPages.length > 0) {
               observer.disconnect();
 
-              const copy = Array.from(viewerElement);
-
-              copy.forEach((element) => {
-                canvasSizeValue = element.getBoundingClientRect();
-                configureFabric(element, canvasSizeValue);
+              Array.from(pdfPages).forEach((element) => {
+                const canvasSizeValue = element.getBoundingClientRect();
+                if (!canvasSizeValue.width || !canvasSizeValue.height) {
+                  return;
+                }
+                const instance = configureFabric(element, canvasSizeValue);
+                fabricInstances.push(instance);
               });
             }
           });
           observer.observe(iframeDoc.body, { childList: true, subtree: true });
         }
       };
+
+      iframe.contentWindow.onresize = () => {
+        setTimeout(() => {
+          updateFabricCanvas(iframeDoc);
+        }, 100);
+      };
+
+      function updateFabricCanvas(iframeDoc) {
+        if (!iframeDoc) return;
+
+        const pdfPages = iframeDoc.getElementsByTagName("canvas");
+        if (pdfPages.length > 0) {
+          let index = 0;
+          Array.from(pdfPages).forEach((element) => {
+            const canvasSizeValue = element.getBoundingClientRect();
+            if (!canvasSizeValue.width || !canvasSizeValue.height) {
+              return;
+            }
+
+            const currentInstance = fabricInstances[index];
+            if (currentInstance) {
+              const newWidth = canvasSizeValue.width;
+              const newHeight = canvasSizeValue.height;
+
+              // Optional: Adjust objects to maintain aspect ratio
+              currentInstance.getObjects().forEach((obj) => {
+                obj.scaleX = obj.scaleX * (newWidth / currentInstance.width);
+                obj.scaleY = obj.scaleY * (newHeight / currentInstance.height);
+                obj.left = obj.left * (newWidth / currentInstance.width);
+                obj.top = obj.top * (newHeight / currentInstance.height);
+                obj.setCoords();
+              });
+              
+              currentInstance.setWidth(newWidth);
+              currentInstance.setHeight(newHeight);
+
+              // Re-render the canvas
+              currentInstance.renderAll();
+
+              currentInstance.wrapperEl.style.top = `${canvasSizeValue.top}px`;
+              currentInstance.wrapperEl.style.left = `${canvasSizeValue.left}px`;
+            }
+
+            index++;
+          });
+        }
+      }
 
       function configureFabric(pdfCanvas, canvasSize) {
         console.log("ESTE ES EL CANVAS SIZE: ", canvasSize);
@@ -62,14 +109,16 @@
         const fabricInstance = new fabric.Canvas(fabricCanvas, {
           isDrawingMode: true,
           width: canvasSize.width,
-          height: canvasSize.height
+          height: canvasSize.height,
         });
 
         fabricInstance.freeDrawingBrush.width = 2;
         fabricInstance.freeDrawingBrush.color = "blue";
 
-        fabricInstance.wrapperEl.style.top = `${canvasSize.top}px`
-        fabricInstance.wrapperEl.style.left = `${canvasSize.left}px`
+        fabricInstance.wrapperEl.style.top = `${canvasSize.top}px`;
+        fabricInstance.wrapperEl.style.left = `${canvasSize.left}px`;
+
+        return fabricInstance;
       }
     </script>
 
