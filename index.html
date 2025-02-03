@@ -12,21 +12,26 @@
       <button id="pdfInteractionsButton" onclick="togglePDFInteractions()">Activar Medición</button>
     </div> -->
 
-    <iframe
-      id="inlineFrameExample"
-      title="Inline Frame Example"
-      width="100%"
-      height="100%"
-      style="position: absolute; top: 0; left: 0; bottom: 0; right: 0"
-      src="/pdfjs-4.10.38-dist/web/viewer.html?file=/public/SheetTemplate.pdf"
-    >
-    </iframe>
+    <div id="drawing-zone">
+      <iframe
+        id="inlineFrameExample"
+        title="Inline Frame Example"
+        width="100%"
+        height="100%"
+        style="position: absolute; top: 0; left: 0; bottom: 0; right: 0"
+        src="/pdfjs-4.10.38-dist/web/viewer.html?file=/public/SheetTemplate.pdf"
+      >
+      </iframe>
+      <div id="drawing-container"></div>
+    </div>
+
     <script src="/src/viewercode.js"></script>
     <script src="./public/fabric.min.js"></script>
 
     <script>
       const iframe = document.getElementById("inlineFrameExample");
       let iframeDoc = null;
+      let areFabricCanvasesInitialized = false;
 
       // Array to store Fabric.js instances
       const fabricInstances = [];
@@ -36,31 +41,61 @@
 
         if (iframeDoc) {
           const observer = new MutationObserver(() => {
-            const pdfPages = iframeDoc.getElementsByTagName("canvas");
-            if (pdfPages.length > 0) {
-              observer.disconnect();
-
-              Array.from(pdfPages).forEach((element) => {
-                const canvasSizeValue = element.getBoundingClientRect();
-                if (!canvasSizeValue.width || !canvasSizeValue.height) {
-                  return;
-                }
-                const instance = configureFabric(element, canvasSizeValue);
-                fabricInstances.push(instance);
-              });
+            if (!arePdfViewerCanvasesInitialized()) {
+              return; //PDF viewer canvases not initialized
             }
+
+            if (areFabricCanvasesInitialized) {
+              updateFabricCanvases();
+              return;
+            }
+
+            const pdfPages = iframeDoc.getElementsByTagName("canvas");
+
+            Array.from(pdfPages).forEach((element) => {
+              const canvasSizeValue = element.getBoundingClientRect();
+              if (!canvasSizeValue.width || !canvasSizeValue.height) {
+                return;
+              }
+              const instance = configureFabric(element, canvasSizeValue);
+              fabricInstances.push(instance);
+            });
+
+            areFabricCanvasesInitialized = true;
           });
           observer.observe(iframeDoc.body, { childList: true, subtree: true });
+
+          const pdfViewerContainer =
+            iframeDoc.getElementById("viewerContainer");
+          const drawingContainer = document.getElementById("drawing-container");
+
+          // Listen for scroll events inside the iframe (PDF viewer)
+          pdfViewerContainer.addEventListener("scroll", function () {
+            const scrollTop = pdfViewerContainer.scrollTop;
+            const scrollLeft = pdfViewerContainer.scrollLeft;
+
+            // Sync scroll position to drawing-container
+            drawingContainer.scrollTop = scrollTop;
+            drawingContainer.scrollLeft = scrollLeft;
+          });
+
+          // Listen for scroll events inside the drawing-container (Fabric.js canvas)
+          drawingContainer.addEventListener("scroll", function () {
+            pdfViewerContainer.scrollTo(
+              drawingContainer.scrollLeft,
+              drawingContainer.scrollTop
+            );
+          });
         }
       };
 
       iframe.contentWindow.onresize = () => {
         setTimeout(() => {
-          updateFabricCanvas(iframeDoc);
+          updateFabricCanvases();
         }, 100);
       };
 
-      function updateFabricCanvas(iframeDoc) {
+      function updateFabricCanvases() {
         if (!iframeDoc) return;
 
         const pdfPages = iframeDoc.getElementsByTagName("canvas");
@@ -85,15 +120,21 @@
                 obj.top = obj.top * (newHeight / currentInstance.height);
                 obj.setCoords();
               });
-              
+
               currentInstance.setWidth(newWidth);
               currentInstance.setHeight(newHeight);
 
               // Re-render the canvas
               currentInstance.renderAll();
 
-              currentInstance.wrapperEl.style.top = `${canvasSizeValue.top}px`;
-              currentInstance.wrapperEl.style.left = `${canvasSizeValue.left}px`;
+              const pdfViewerContainer =
+                iframeDoc.getElementById("viewerContainer");
+
+              const top = canvasSizeValue.top + pdfViewerContainer.scrollTop;
+              const left = canvasSizeValue.left + pdfViewerContainer.scrollLeft;
+
+              currentInstance.wrapperEl.style.top = `${top}px`;
+              currentInstance.wrapperEl.style.left = `${left}px`;
             }
 
             index++;
@@ -103,8 +144,10 @@
 
       function configureFabric(pdfCanvas, canvasSize) {
         console.log("ESTE ES EL CANVAS SIZE: ", canvasSize);
+
+        const container = document.getElementById("drawing-container");
         const fabricCanvas = document.createElement("canvas");
-        document.body.appendChild(fabricCanvas);
+        container.appendChild(fabricCanvas);
 
         const fabricInstance = new fabric.Canvas(fabricCanvas, {
           isDrawingMode: true,
@@ -115,10 +158,31 @@
         fabricInstance.freeDrawingBrush.width = 2;
         fabricInstance.freeDrawingBrush.color = "blue";
 
-        fabricInstance.wrapperEl.style.top = `${canvasSize.top}px`;
-        fabricInstance.wrapperEl.style.left = `${canvasSize.left}px`;
+        const pdfViewerContainer = iframeDoc.getElementById("viewerContainer");
+
+        const top = canvasSize.top + pdfViewerContainer.scrollTop;
+        const left = canvasSize.left + pdfViewerContainer.scrollLeft;
+
+        fabricInstance.wrapperEl.style.top = `${top}px`;
+        fabricInstance.wrapperEl.style.left = `${left}px`;
 
         return fabricInstance;
+      }
+
+      function arePdfViewerCanvasesInitialized() {
+        const pdfPages = iframeDoc.getElementsByClassName("page");
+
+        if (!pdfPages.length) {
+          return false;
+        }
+
+        for (const page of Array.from(pdfPages)) {
+          if (!page.querySelector(".canvasWrapper>canvas")) {
+            return false;
+          }
+        }
+
+        return true;
       }
     </script>
 
