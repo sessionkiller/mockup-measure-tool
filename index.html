@@ -19,7 +19,7 @@
         width="100%"
         height="100%"
         style="position: absolute; top: 0; left: 0; bottom: 0; right: 0"
-        src="/pdfjs-4.10.38-dist/web/viewer.html?file=/public/SheetTemplate.pdf"
+        src="/pdfjs-4.10.38-dist/web/viewer.html?file=/public/multiPagesPDF.pdf"
       >
       </iframe>
       <div id="drawing-container"></div>
@@ -50,14 +50,14 @@
               return;
             }
 
-            const pdfPages = iframeDoc.getElementsByTagName("canvas");
+            const pdfPages = iframeDoc.getElementsByClassName("page");
 
-            Array.from(pdfPages).forEach((element) => {
-              const canvasSizeValue = element.getBoundingClientRect();
-              if (!canvasSizeValue.width || !canvasSizeValue.height) {
+            Array.from(pdfPages).forEach((element, index) => {
+              const dimensions = getDimensions(element);
+              if (!dimensions.width || !dimensions.height) {
                 return;
               }
-              const instance = configureFabric(element, canvasSizeValue);
+              const instance = configureFabric(element, dimensions, index);
               fabricInstances.push(instance);
             });
 
@@ -98,21 +98,21 @@
       function updateFabricCanvases() {
         if (!iframeDoc) return;
 
-        const pdfPages = iframeDoc.getElementsByTagName("canvas");
+        const pdfPages = iframeDoc.getElementsByClassName("page");
         if (pdfPages.length > 0) {
           let index = 0;
           Array.from(pdfPages).forEach((element) => {
-            const canvasSizeValue = element.getBoundingClientRect();
-            if (!canvasSizeValue.width || !canvasSizeValue.height) {
+            const dimensions = getDimensions(element);
+            if (!dimensions.width || !dimensions.height) {
               return;
             }
 
             const currentInstance = fabricInstances[index];
             if (currentInstance) {
-              const newWidth = canvasSizeValue.width;
-              const newHeight = canvasSizeValue.height;
+              const newWidth = dimensions.width;
+              const newHeight = dimensions.height;
 
-              // Optional: Adjust objects to maintain aspect ratio
+              //Adjust objects to maintain aspect ratio
               currentInstance.getObjects().forEach((obj) => {
                 obj.scaleX = obj.scaleX * (newWidth / currentInstance.width);
                 obj.scaleY = obj.scaleY * (newHeight / currentInstance.height);
@@ -130,8 +130,8 @@
               const pdfViewerContainer =
                 iframeDoc.getElementById("viewerContainer");
 
-              const top = canvasSizeValue.top + pdfViewerContainer.scrollTop;
-              const left = canvasSizeValue.left + pdfViewerContainer.scrollLeft;
+              const top = dimensions.top - (newHeight * index) + pdfViewerContainer.scrollTop;
+              const left = dimensions.left + pdfViewerContainer.scrollLeft;
 
               currentInstance.wrapperEl.style.top = `${top}px`;
               currentInstance.wrapperEl.style.left = `${left}px`;
@@ -142,8 +142,8 @@
         }
       }
 
-      function configureFabric(pdfCanvas, canvasSize) {
-        console.log("ESTE ES EL CANVAS SIZE: ", canvasSize);
+      function configureFabric(pdfCanvas, dimensions, index) {
+        console.log("ESTE ES EL CANVAS SIZE: ", dimensions);
 
         const container = document.getElementById("drawing-container");
         const fabricCanvas = document.createElement("canvas");
@@ -151,8 +151,8 @@
 
         const fabricInstance = new fabric.Canvas(fabricCanvas, {
           isDrawingMode: true,
-          width: canvasSize.width,
-          height: canvasSize.height,
+          width: dimensions.width,
+          height: dimensions.height,
         });
 
         fabricInstance.freeDrawingBrush.width = 2;
@@ -160,8 +160,8 @@
 
         const pdfViewerContainer = iframeDoc.getElementById("viewerContainer");
 
-        const top = canvasSize.top + pdfViewerContainer.scrollTop;
-        const left = canvasSize.left + pdfViewerContainer.scrollLeft;
+        const top = dimensions.top - (dimensions.height * index) + pdfViewerContainer.scrollTop;
+        const left = dimensions.left + pdfViewerContainer.scrollLeft;
 
         fabricInstance.wrapperEl.style.top = `${top}px`;
         fabricInstance.wrapperEl.style.left = `${left}px`;
@@ -176,13 +176,39 @@
           return false;
         }
 
-        for (const page of Array.from(pdfPages)) {
-          if (!page.querySelector(".canvasWrapper>canvas")) {
-            return false;
-          }
-        }
+        // for (const page of Array.from(pdfPages)) {
+        //   if (!page.querySelector(".canvasWrapper>canvas")) {
+        //     return false;
+        //   }
+        // }
 
         return true;
+      }
+
+      function getDimensions(element){
+
+        const dimensions = element.getBoundingClientRect();
+        const pageMargin = 10;
+
+        let width = dimensions.width - pageMargin * 2
+        let height = dimensions.height - pageMargin * 2
+        let top = dimensions.top + pageMargin;
+        let left = dimensions.left + pageMargin;
+
+        if(width < 0){
+          width = 0
+        }
+        if(height < 0){
+          height = 0
+        }
+
+        return {
+          width,
+          height,
+          top,
+          left
+        }
+        
       }
     </script>
 
